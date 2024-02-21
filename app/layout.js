@@ -16,9 +16,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <ClerkProvider
-      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-    >
+    <ClerkProvider>
       <html lang='en' suppressHydrationWarning>
         <body className={cn(font.className, 'bg-white dark:bg-[#313338]')}>
           <ThemeProvider
