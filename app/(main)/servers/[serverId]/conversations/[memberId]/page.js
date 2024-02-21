@@ -45,11 +45,17 @@ const MemberIdPage = async ({ params, searchParams }) => {
         type='conversation'
       />
 
-      {searchParams.video && (
+      {/* {searchParams.video && (
         <MediaRoom chatId={conversation.id} video={true} audio={true} />
       )}
 
-      {!searchParams.video && (
+      {channel.type === ChannelType.VIDEO && (
+        <MediaRoom chatId={channelId} video={true} audio={true} />
+      )} */}
+
+      <MediaRoom chatId={conversation.id} video={true} audio={true} />
+
+      {/* {!searchParams.video && (
         <>
           <ChatMessages
             member={currentMember}
@@ -74,7 +80,7 @@ const MemberIdPage = async ({ params, searchParams }) => {
             }}
           />
         </>
-      )}
+      )} */}
     </div>
   );
 };

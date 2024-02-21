@@ -7,6 +7,7 @@ import { useUser } from '@clerk/nextjs';
 import { Loader2 } from 'lucide-react';
 
 const MediaRoom = ({ chatId, video, audio }) => {
+  console.log({ chatId });
   const { user } = useUser();
   const [token, setToken] = useState('');
 
