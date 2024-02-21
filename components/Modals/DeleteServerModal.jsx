@@ -37,6 +37,7 @@ const DeleteServerModal = () => {
       setIsLoading(false);
     }
   };
+
   return (
     <Dialog onOpenChange={onClose} open={isModalOpen}>
       <DialogContent className='bg-white text-black p-0 overflow-hidden'>

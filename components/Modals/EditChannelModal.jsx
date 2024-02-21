@@ -3,66 +3,171 @@
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-
-import { useModalStore } from '@/hooks/useModalStroe';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '../ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { useModalStore } from '@/hooks/useModalStroe';
+import { ChannelType } from '@prisma/client';
+import qs from 'query-string';
+import { useEffect } from 'react';
+
+const formSchema = z.object({
+  name: z
+    .string()
+    .min(1, { message: 'Channel name is required' })
+    .refine((name) => name !== 'general', {
+      message: "Channel name cannot be 'general'",
+    }),
+  type: z.nativeEnum(ChannelType),
+});
 
 const EditChannelModal = () => {
   const router = useRouter();
   const { isOpen, onClose, type, data } = useModalStore();
+
   const isModalOpen = isOpen && type === 'editChannel';
 
-  const { server } = data;
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      type: ChannelType.TEXT,
+    },
+  });
 
-  const [isLoading, setIsLoading] = useState(false);
+  useEffect(() => {
+    if (data.channel) {
+      form.setValue('name', data.channel.name);
+      form.setValue('type', data.channel.type);
+    }
+  }, [data.channel, form]);
 
-  const onClick = async () => {
+  const isLoading = form.formState.isSubmitting;
+
+  const onSubmit = async (values) => {
     try {
-      setIsLoading(true);
-      await axios.delete(`/api/servers/${server.id}`);
-      onClose();
+      const url = qs.stringifyUrl({
+        url: `/api/channels/${data.channel.id}`,
+        query: {
+          serverId: data.server.id,
+        },
+      });
+
+      await axios.patch(url, values);
+      form.reset();
       router.refresh();
-      router.push('/');
+      onClose();
     } catch (error) {
       console.log(error);
-    } finally {
-      setIsLoading(false);
     }
   };
+
+  const handleClose = () => {
+    form.reset();
+    onClose();
+  };
+
   return (
-    <Dialog onOpenChange={onClose} open={isModalOpen}>
+    <Dialog onOpenChange={handleClose} open={isModalOpen}>
       <DialogContent className='bg-white text-black p-0 overflow-hidden'>
         <DialogHeader className='pt-8 px-6'>
           <DialogTitle className='text-2xl text-center font-bold'>
-            Delete Server
+            Edit Channel
           </DialogTitle>
-          <DialogDescription className='text-center text-zinc-500'>
-            Are you sure you want to do this? <br />
-            <span className='font-semibold text-indigo-500'>
-              {server?.name}
-            </span>{' '}
-            will be permanently deleted ?
-          </DialogDescription>
         </DialogHeader>
 
-        <DialogFooter className='bg-gray-100 px-6 py-4'>
-          <div className='flex items-center justify-between w-full'>
-            <Button disabled={isLoading} onClick={onClose} variant='ghost'>
-              Cancel
-            </Button>
-            <Button disabled={isLoading} onClick={onClick} variant='primary'>
-              Confirm
-            </Button>
-          </div>
-        </DialogFooter>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+            <div className='space-y-8 px-6'>
+              <FormField
+                name='name'
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel className='uppercase text-xs font-bold text-zinc-500 dark:text-secondary/70'>
+                        Channel name
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          disabled={isLoading}
+                          className='bg-zinc-300/50 border-0 focus-visible:ring-0 text-black focus-visible:ring-offset-0'
+                          placeholder='Enter channel name'
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+
+              <FormField
+                name='type'
+                render={({ field }) => {
+                  return (
+                    <FormItem>
+                      <FormLabel>Channel Type</FormLabel>
+                      <Select
+                        disabled={isLoading}
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className='bg-zinc-300/50 border-0 focus:ring-0 text-black ring-offset-0 focus:ring-offset-0 capitalize outline-none'>
+                            <SelectValue placeholder='Select a channel type' />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Object.values(ChannelType).map((type) => {
+                            return (
+                              <SelectItem
+                                key={type}
+                                value={type}
+                                className='capitalize'
+                              >
+                                {type.toLowerCase()}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+            </div>
+
+            <DialogFooter className='bg-gray-100 px-6 py-4'>
+              <Button variant='primary' disabled={isLoading}>
+                Save
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

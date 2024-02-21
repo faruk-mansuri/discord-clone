@@ -18,24 +18,15 @@ import {
   UserPlus,
 } from 'lucide-react';
 import { useModalStore } from '@/hooks/useModalStroe';
-import { useEffect, useState } from 'react';
 
 const ServerHeader = ({ server, role }) => {
   const { onOpen } = useModalStore();
   const isAdmin = role === MemberRole.ADMIN;
   const isModerator = isAdmin || role === MemberRole.MODERATOR;
 
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted) return null;
-
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className='focus:outline-none'>
+      <DropdownMenuTrigger className='focus:outline-none' asChild>
         <button className='w-full font-semibold px-3 flex items-center h-12 border-neutral-200 dark:border-neutral-800 border-b-2 hover:bg-zinc-700/10 dark:hover:bg-zinc-700/50 transition'>
           {server.name}
           <ChevronDown className='h-5 w-5 ml-auto' />
