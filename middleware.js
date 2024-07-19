@@ -7,11 +7,17 @@ import { authMiddleware, redirectToSignIn } from '@clerk/nextjs';
 export default authMiddleware({
   publicRoutes: ['/api/uploadthing'],
 
-  // afterAuth(auth, req) {
-  //   if (!auth.userId && !auth.isPublicRoute) {
-  //     return redirectToSignIn({ returnBackUrl: req.url });
-  //   }
-  // },
+  afterAuth(auth, req) {
+    if (!auth.userId && !auth.isPublicRoute) {
+      console.log('URL', req.url);
+      const baseUrl =
+        process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+      const redirectTo = `${baseUrl}/sign-in?returnBackUrl=${encodeURIComponent(
+        req.url
+      )}`;
+      return redirectToSignIn({ returnBackUrl: redirectTo });
+    }
+  },
 });
 
 export const config = {
