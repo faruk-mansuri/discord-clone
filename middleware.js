@@ -9,13 +9,9 @@ export default authMiddleware({
 
   afterAuth(auth, req) {
     if (!auth.userId && !auth.isPublicRoute) {
-      console.log('URL', req.url);
-      const baseUrl =
-        process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-      const redirectTo = `${baseUrl}/sign-in?returnBackUrl=${encodeURIComponent(
-        req.url
-      )}`;
-      return redirectToSignIn({ returnBackUrl: redirectTo });
+      console.log('URL = ', req.url);
+
+      return redirectToSignIn({ returnBackUrl: req.url });
     }
   },
 });
